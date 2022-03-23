@@ -1,7 +1,12 @@
 package org.grails.plugins.filterpane
 
 import grails.core.GrailsApplication
+import grails.gorm.DetachedCriteria
 import org.grails.compiler.injection.GrailsAwareClassLoader
+import org.grails.datastore.mapping.model.types.ManyToMany
+import org.grails.datastore.mapping.model.types.OneToMany
+import org.grails.datastore.mapping.query.api.BuildableCriteria
+import org.hibernate.Criteria
 
 class FilterPaneService {
 
@@ -77,11 +82,15 @@ class FilterPaneService {
             if (v instanceof Map) {
                 result = result && areAllValuesEmptyRecursively(v)
             } else {
-                log.debug "${v} is empty ${v?.toString()?.trim()?.isEmpty()}"
-                result = result && v?.toString()?.trim()?.isEmpty()
+                result = result && isEmpty(v)
             }
         }
         result
+    }
+
+    private Boolean isEmpty(value) {
+        log.debug "${value} is empty ${value?.toString()?.trim()?.isEmpty()}"
+        value?.toString()?.trim()?.isEmpty()
     }
 
     private doFilter(params, Class filterClass, Boolean doCount) {
@@ -195,7 +204,7 @@ class FilterPaneService {
         // GRAILSPLUGINS-1320.  If value is instance of Date and op is Equal and
         // precision on date picker was 'day', turn this into a between from
         // midnight to 1 ms before midnight of the next day.
-        boolean isDayPrecision = "y".equalsIgnoreCase(filterParams["${domainProperty?.name}.${domainProperty?.name}_isDayPrecision"]) || "y".equalsIgnoreCase(filterParams["${domainProperty?.name}_isDayPrecision"])
+        boolean isDayPrecision = "y".equalsIgnoreCase(filterParams["${domainProperty?.owner?.name}.${domainProperty?.name}_isDayPrecision"]) || "y".equalsIgnoreCase(filterParams["${domainProperty?.name}_isDayPrecision"])
         boolean isOpAlterable = (op == FilterPaneOperationType.Equal || op == FilterPaneOperationType.NotEqual || op == FilterPaneOperationType.Equal.operation || op == FilterPaneOperationType.NotEqual.operation)
         boolean isGreaterThan = (op == FilterPaneOperationType.GreaterThan || op == FilterPaneOperationType.GreaterThan.operation)
         if (value != null && isDayPrecision && Date.isAssignableFrom(value.class) && isOpAlterable) {
@@ -217,83 +226,102 @@ class FilterPaneService {
         log.debug "Operation $op maps ${criteriaMap.get(op)}"
 
         //needs null check since '' or 0 are valid filter
-        if (op && value != null) {
-            switch (op) {
-                case FilterPaneOperationType.Equal.operation:
-                case FilterPaneOperationType.NotEqual.operation:
-                case FilterPaneOperationType.LessThan.operation:
-                case FilterPaneOperationType.LessThanEquals.operation:
-                case FilterPaneOperationType.GreaterThan.operation:
-                case FilterPaneOperationType.GreaterThanEquals.operation:
-                    criteria."${criteriaMap.get(op)}"(propertyName, value)
-                    break
-                case FilterPaneOperationType.Like.operation:
-                case FilterPaneOperationType.ILike.operation:
-                    if (!value.startsWith('*')) {
-                        value = "*${value}"
-                    }
-                    if (!value.endsWith('*')) {
-                        value = "${value}*"
-                    }
-                    criteria."${criteriaMap.get(op)}"(propertyName, value?.replaceAll("\\*", "%"))
-                    break
-                case FilterPaneOperationType.BeginsWith.operation:
-                case FilterPaneOperationType.IBeginsWith.operation:
-                    if (!value.endsWith('*')) {
-                        value = "${value}*"
-                    }
-                    criteria."${criteriaMap.get(op)}"(propertyName, value?.replaceAll("\\*", "%"))
-                    break
-                case FilterPaneOperationType.EndsWith.operation:
-                case FilterPaneOperationType.IEndsWith.operation:
-                    if (!value.startsWith('*')) {
-                        value = "*${value}"
-                    }
-                    criteria."${criteriaMap.get(op)}"(propertyName, value?.replaceAll("\\*", "%"))
-                    break
-                case 'NotLike':
-                    if (!value.startsWith('*')) {
-                        value = "*${value}"
-                    }
-                    if (!value.endsWith('*')) {
-                        value = "${value}*"
-                    }
-                    criteria.not {
-                        criteria.like(propertyName, value?.replaceAll("\\*", "%"))
-                    }
-                    break
-                case 'NotILike':
-                    if (!value.startsWith('*')) {
-                        value = "*${value}"
-                    }
-                    if (!value.endsWith('*')) {
-                        value = "${value}*"
-                    }
-                    criteria.not {
-                        criteria.ilike(propertyName, value?.replaceAll("\\*", "%"))
-                    }
-                    break
-                case 'IsNull':
-                    criteria.isNull(propertyName)
-                    break
-                case 'IsNotNull':
-                    criteria.isNotNull(propertyName)
-                    break
-                case 'Between':
-                    criteria.between(propertyName, value, value2)
-                    break
-                case 'NotBetween':
-                    criteria.not { between(propertyName, value, value2) }
-                    break
-                case 'InList':
-                    criteria.inList(propertyName, value)
-                    break
-                case 'NotInList':
-                    criteria.not { inList(propertyName, value) }
-                    break
-                default:
-                    break
-            } // end op switch
+        if (op) {
+            if (value != null && !isEmpty(value)) {
+                switch (op) {
+                    case FilterPaneOperationType.Equal.operation:
+                    case FilterPaneOperationType.NotEqual.operation:
+                    case FilterPaneOperationType.LessThan.operation:
+                    case FilterPaneOperationType.LessThanEquals.operation:
+                    case FilterPaneOperationType.GreaterThan.operation:
+                    case FilterPaneOperationType.GreaterThanEquals.operation:
+                        criteria."${criteriaMap.get(op)}"(propertyName, value)
+                        break
+                    case FilterPaneOperationType.Like.operation:
+                    case FilterPaneOperationType.ILike.operation:
+                        if (!value.startsWith('*')) {
+                            value = "*${value}"
+                        }
+                        if (!value.endsWith('*')) {
+                            value = "${value}*"
+                        }
+                        criteria."${criteriaMap.get(op)}"(propertyName, value?.replaceAll("\\*", "%"))
+                        break
+                    case FilterPaneOperationType.BeginsWith.operation:
+                    case FilterPaneOperationType.IBeginsWith.operation:
+                        if (!value.endsWith('*')) {
+                            value = "${value}*"
+                        }
+                        criteria."${criteriaMap.get(op)}"(propertyName, value?.replaceAll("\\*", "%"))
+                        break
+                    case FilterPaneOperationType.EndsWith.operation:
+                    case FilterPaneOperationType.IEndsWith.operation:
+                        if (!value.startsWith('*')) {
+                            value = "*${value}"
+                        }
+                        criteria."${criteriaMap.get(op)}"(propertyName, value?.replaceAll("\\*", "%"))
+                        break
+                    case 'NotLike':
+                        if (!value.startsWith('*')) {
+                            value = "*${value}"
+                        }
+                        if (!value.endsWith('*')) {
+                            value = "${value}*"
+                        }
+                        criteria.not {
+                            criteria.like(propertyName, value?.replaceAll("\\*", "%"))
+                        }
+                        break
+                    case 'NotILike':
+                        if (!value.startsWith('*')) {
+                            value = "*${value}"
+                        }
+                        if (!value.endsWith('*')) {
+                            value = "${value}*"
+                        }
+                        criteria.not {
+                            criteria.ilike(propertyName, value?.replaceAll("\\*", "%"))
+                        }
+                        break
+                    case 'Between':
+                        criteria.between(propertyName, value, value2)
+                        break
+                    case 'NotBetween':
+                        criteria.not { between(propertyName, value, value2) }
+                        break
+                    case 'InList':
+                        criteria.inList(propertyName, value)
+                        break
+                    case 'NotInList':
+                        criteria.not { inList(propertyName, value) }
+                        break
+                    default:
+                        break
+                } // end op switch
+            } else {
+                switch (op) {
+                    case 'IsNull':
+                        criteria.isNull(propertyName)
+                        break
+                    case 'IsNotNull':
+                        criteria.isNotNull(propertyName)
+                        break
+                    case 'IsEmpty':
+                        criteria.or {
+                            eq(propertyName, '')
+                            isNull(propertyName)
+                        }
+                        break
+                    case 'IsNotEmpty':
+                        criteria.or {
+                            ne(propertyName, '')
+                            isNotNull(propertyName)
+                        }
+                        break
+                    default:
+                        break
+                } // end op switch
+            }
         }
     }
 

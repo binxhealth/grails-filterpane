@@ -268,6 +268,8 @@ class FilterPaneTagLib {
 
                             case FilterPaneOperationType.IsNull.operation.toLowerCase():
                             case FilterPaneOperationType.IsNotNull.operation.toLowerCase():
+                            case FilterPaneOperationType.IsEmpty.operation.toLowerCase():
+                            case FilterPaneOperationType.IsNotEmpty.operation.toLowerCase():
                                 filterValue = ''
                                 break
                             case FilterPaneOperationType.Between.operation.toLowerCase():
@@ -351,6 +353,8 @@ class FilterPaneTagLib {
         renderModel.showTitle = attrs.showTitle ? resolveBoolAttrValue(attrs.showTitle) : true
         renderModel.listDistinct = attrs.listDistinct ? resolveBoolAttrValue(attrs.listDistinct) : false
         renderModel.uniqueCountColumn = attrs.uniqueCountColumn ?: ''
+        renderModel.inferEmptyStringsAsNull = attrs.inferEmptyStringsAsNull ?
+            resolveBoolAttrValue(attrs.inferEmptyStringsAsNull) : false
         renderModel.useDefaultOperator = attrs.useDefaultOperator ?
             resolveBoolAttrValue(attrs.useDefaultOperator) : false
 
@@ -799,7 +803,9 @@ class FilterPaneTagLib {
             map.opKeys = opKeys
             map.opValue = params[opName]
             map.useDefaultOperator = renderModel.useDefaultOperator
-            if ((params[opName] as String) in [FilterPaneOperationType.IsNull.operation,
+            if ((params[opName] as String) in [FilterPaneOperationType.IsEmpty.operation,
+                                               FilterPaneOperationType.IsNotEmpty.operation,
+                                               FilterPaneOperationType.IsNull.operation,
                                                FilterPaneOperationType.IsNotNull.operation]) {
                 map.ctrlAttrs.style = 'display:none;'
             }

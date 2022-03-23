@@ -10,6 +10,8 @@ enum FilterPaneOperationType implements Serializable {
     NotEqual('NotEqual'),
     IsNull('IsNull'),
     IsNotNull('IsNotNull'),
+    IsEmpty('IsEmpty'),
+    IsNotEmpty('IsNotEmpty'),
     LessThan('LessThan'),
     LessThanEquals('LessThanEquals'),
     GreaterThan('GreaterThan'),
