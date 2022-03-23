@@ -106,7 +106,9 @@ var grailsFilterPane = {
 
                 var containerName = prop + '-container';
                 if (selection.value == 'IsNull'
-                        || selection.value == 'IsNotNull') {
+                        || selection.value == 'IsNotNull'
+                        || selection.value == 'IsEmpty'
+                        || selection.value == 'IsNotEmpty') {
                     grailsFilterPane.hideElement(controlId);
                     // Take care of date picker fields we created.
                     if (document.getElementById(containerName)) {
