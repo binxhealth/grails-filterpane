@@ -22,19 +22,40 @@ class FilterPaneService {
         doFilter(params, filterClass, true)
     }
 
-    private filterParse(criteria, domainClass, params, filterParams, filterOpParams, doCount) {
+    private sort(criteria, List sortPath, order){
+        if (sortPath.size() == 1) {
+           criteria.order(sortPath.pop(), order ?: 'asc')
+        } else if(sortPath.size() > 0) {
+            criteria."${sortPath.pop()}" {
+                sort(criteria, sortPath, order)
+            }
+        }
+    }
+
+    private filterParse(criteria, domainClass, params,
+                          filterParams, filterOpParams, doCount, previousParams = null) {
+        if (!previousParams) {
+            previousParams = [
+                path: "this",
+                root: "this"
+            ]
+        }
         // First pull out the op map and store a list of its keys.
         def keyList = []
         keyList.addAll(filterOpParams.keySet())
         keyList = keyList.sort() // Sort them to get nested properties next to each other.
 
         log.debug("op Keys = ${keyList}")
-
         // op = map entry.  op.key = property name.  op.value = operator.
         // params[op.key] is the value
         keyList.each { String propName ->
             log.debug("\n=============================================================================.")
             log.debug("== ${propName}")
+
+            def currentParams = [
+                path: [previousParams.root, propName].join("."),
+                root: previousParams.path
+            ]
 
             // Skip associated property entries.  (They'll have a dot in them.)  We'll use the map instead later.
             if (!propName.contains(".")) {
@@ -48,18 +69,40 @@ class FilterPaneService {
                     def nextFilterOpParams = filterOp
 
                     if (!areAllValuesEmptyRecursively(nextFilterParams) && !areAllValuesEmptyRecursively(nextFilterOpParams)) {
-                        criteria."${propName}" {
-                            // Are any of the values non-empty?
-                            log.debug("== Adding association ${propName}")
-                            def nextDomainProp = FilterPaneUtils.resolveDomainProperty(domainClass, propName)
-                            def nextDomainClass = FilterPaneUtils.resolveReferencedDomainClass(nextDomainProp)
-                            // If they want to sort by an associated property, need to do it here.
-                            List sort = params.sort.toString().split('\\.')
-                            //todo: while this appears to output correct criteria, the sort of child objects doesn't seem to work as intended
-                            if (!doCount && params.sort && sort.size() > 1 && sort.get(sort.size() - 2) == propName) {
-                                order(sort.get(sort.size() - 1), params.order ?: 'asc')
+                        // Are any of the values non-empty?
+                        log.debug("== Adding association ${propName}")
+                        def nextDomainProp = FilterPaneUtils.resolveDomainProperty(domainClass, propName)
+                        def nextDomainClass = FilterPaneUtils.resolveReferencedDomainClass(nextDomainProp)
+
+                        if (nextDomainProp instanceof OneToMany || nextDomainProp instanceof ManyToMany) {
+                            DetachedCriteria subQuery = null
+                            if (nextDomainProp.owningSide) {
+                                subQuery = new DetachedCriteria(nextDomainClass.javaClass, propName).build {
+                                    String referencedIdName = nextDomainProp.owner.identity.name
+                                    String ownerPropertyName = nextDomainProp.referencedPropertyName
+                                    String path = currentParams.root
+                                    if(nextDomainProp instanceof ManyToMany){
+                                        createAlias(ownerPropertyName, ownerPropertyName)
+                                    }
+                                    eqProperty("${ownerPropertyName}.${referencedIdName}", "${path}.${referencedIdName}")
+                                }
+                                filterParse(subQuery, nextDomainClass, params, nextFilterParams, nextFilterOpParams, doCount, currentParams)
+                            } else {
+                                String referencedIdName = domainClass.identity.name
+                                String ownerName = nextDomainProp.owner.decapitalizedName
+                                subQuery = new DetachedCriteria(domainClass.javaClass, "${ownerName}_${propName}").build {
+                                    def joinCriteria = createAlias(propName, propName)
+                                    String path = currentParams.root
+                                    eqProperty("${referencedIdName}", "${path}.${referencedIdName}")
+                                    filterParse(joinCriteria, nextDomainClass, params, nextFilterParams, nextFilterOpParams, doCount, currentParams)
+                                }
                             }
-                            filterParse(criteria, nextDomainClass, params, nextFilterParams, nextFilterOpParams, doCount)
+                            criteria.exists(subQuery.id())
+                        } else {
+                            criteria."${propName}" {
+                                def currentCriteria = criteria instanceof DetachedCriteria ? criteria.criteria.last() : criteria
+                                filterParse(currentCriteria, nextDomainClass, params, nextFilterParams, nextFilterOpParams, doCount, currentParams)
+                            }
                         }
                     }
                 } else {
@@ -140,22 +183,14 @@ class FilterPaneService {
                     }
                     def defaultSort
                     try {
-                        def gdb
-                        Class clz = new GrailsAwareClassLoader().loadClass('org.grails.orm.hibernate.cfg.GrailsDomainBinder')
-                        if (clz) {
-                            gdb = clz.newInstance()
-                            if (gdb?.class?.simpleName == 'GrailsDomainBinder') {
-                                defaultSort = gdb?.getMapping(filterClass)?.sort
-                            }
-                        }
+                        def mapping = grailsApplication.mappingContext.getPersistentEntity(filterClass.name).getMapping()
+                        defaultSort = mapping?.mappedForm?.sort
                     } catch (Exception ex) {
                         log.info("Error", ex)
                         log.info("No mapping property found on filterClass ${filterClass}")
                     }
                     if (params.sort) {
-                        if (params.sort.indexOf('.') < 0) { // if not an association..
-                            order(params.sort, params.order ?: 'asc')
-                        }
+                        sort(c, params.sort.split("[.]") as List, params.order)
                     } else if (defaultSort != null) {
                         log.debug('No sort specified and default is specified on domain. Using it.')
                         // Grails >2.3 uses SortConfig for default sort
