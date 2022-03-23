@@ -351,6 +351,8 @@ class FilterPaneTagLib {
         renderModel.showTitle = attrs.showTitle ? resolveBoolAttrValue(attrs.showTitle) : true
         renderModel.listDistinct = attrs.listDistinct ? resolveBoolAttrValue(attrs.listDistinct) : false
         renderModel.uniqueCountColumn = attrs.uniqueCountColumn ?: ''
+        renderModel.useDefaultOperator = attrs.useDefaultOperator ?
+            resolveBoolAttrValue(attrs.useDefaultOperator) : false
 
         /*
            * Need properties to filter,
@@ -399,7 +401,7 @@ class FilterPaneTagLib {
         def subClassPersistentProps = FilterPaneUtils.resolveSubDomainsProperties(domain)
         for (ap in additionalPropNames) {
             if ("id".equals(ap) || "identifier".equals(ap)) {
-                finalProps[domain.identifier.name] = domain.identifier
+                finalProps[domain.identity.name] = domain.identity
             } else if ("version".equals(ap)) {
                 finalProps[domain.version.name] = domain.version
             } else {
@@ -796,7 +798,9 @@ class FilterPaneTagLib {
             map.opName = opName
             map.opKeys = opKeys
             map.opValue = params[opName]
-            if (params[opName] == FilterPaneOperationType.IsNull.operation || params[opName] == "IsNotNull") {
+            map.useDefaultOperator = renderModel.useDefaultOperator
+            if ((params[opName] as String) in [FilterPaneOperationType.IsNull.operation,
+                                               FilterPaneOperationType.IsNotNull.operation]) {
                 map.ctrlAttrs.style = 'display:none;'
             }
 
@@ -885,7 +889,7 @@ class FilterPaneTagLib {
                     refDomain.identity :
                     refDomain.persistentProperties.find { it.name == parts[index] }
             //log.debug("refDomain is ${refDomain}, refProperty is ${refProperty}, parts[${index}] = ${parts[index]}")
-            association = (refProperty instanceof Association && refProperty?.type?.isEnum() == false) ? refProperty : null
+            association = (refProperty instanceof Association && !refProperty?.type?.isEnum()) ? refProperty : null
             index += 1
         }
 

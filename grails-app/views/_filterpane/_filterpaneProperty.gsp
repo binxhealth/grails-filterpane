@@ -1,11 +1,11 @@
 <tr>
 <td>${fieldLabel}</td>
 <td>
-	<g:select id="${opName}" 
-			  name="${opName}" 
-			  from="${opKeys}" 
+	<g:select id="${opName}"
+			  name="${opName}"
+			  from="${opKeys}"
 			  keys="${opKeys}"
-			  value="${opValue}"
+			  value="${opValue?:(useDefaultOperator ?  opKeys.first() : opValue)}"
 			  valueMessagePrefix="fp.op"
 			  onChange="grailsFilterPane.filterOpChange('${opName}', '${ctrlAttrs.id}');" />
 </td>
