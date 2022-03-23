@@ -369,7 +369,9 @@ class FilterPaneTagLib {
         List persistentProps = (domain.persistentProperties + domain.associations).unique() as List
         List additionalPropNames = resolveListAttribute(attrs.additionalProperties)
         List excludePropNames = resolveListAttribute(attrs.excludeProperties)
+        List excludeSortPropNames = resolveListAttribute(attrs.excludeSortProperties)
         List associatedPropNames = resolveListAttribute(attrs.associatedProperties)
+        Comparator comparator = attrs.sortPropertiesComparator
 
         // DEPRECATION: attribute name filterProperties as of 2.0
         List explicitPropNames = resolveListAttribute(attrs.explicitProperties ?: attrs.filterProperties)
@@ -451,7 +453,10 @@ class FilterPaneTagLib {
 //        def domainComparator = new org.grails.validation.DomainClassPropertyComparator(domain)
 
         // TODO - just sort by keys for now
-        def sortedProps = finalProps.entrySet().asList().sort { a, b -> a.key <=> b.key }
+        List propKeys = finalProps.entrySet().asList()
+        def sortedProps = propKeys.sort { a, b ->
+            comparator ? comparator.compare(a.key, b.key) : a.key <=> b.key
+        }
 
         // add 'class' property if domain class has its implementers
         boolean hasSubClasses = !grailsApplication.mappingContext.getChildEntities(domain).isEmpty()
@@ -465,6 +470,7 @@ class FilterPaneTagLib {
         renderModel.properties = []
 
         mapSortedProps(sortedProps, finalProps, attrs, useFullAssociationPath, renderModel)
+        sortedProps = sortedProps.findAll { sp -> !excludeSortPropNames.any { sp.key == it } }
 
         def sortKeys = sortedProps.collect { it.key }
         log.debug("Sorted props: ${sortedProps}")
@@ -681,6 +687,13 @@ class FilterPaneTagLib {
             if ((constrainedProperty && !constrainedProperty.isNullable()) || sp.name == 'id') {
                 opKeys.remove(FilterPaneOperationType.IsNotNull.operation)
                 opKeys.remove(FilterPaneOperationType.IsNull.operation)
+            } else if (renderModel.inferEmptyStringsAsNull &&
+                constrainedProperty && type == 'text' &&
+                (constrainedProperty.isBlank() || constrainedProperty.isNullable())) {
+                opKeys.remove(FilterPaneOperationType.IsNotNull.operation)
+                opKeys.remove(FilterPaneOperationType.IsNull.operation)
+                opKeys.addAll(opKeys.indexOf(FilterPaneOperationType.IBeginsWith.operation),
+                    [FilterPaneOperationType.IsEmpty.operation, FilterPaneOperationType.IsNotEmpty.operation])
             }
 
             map.ctrlType = "text"
