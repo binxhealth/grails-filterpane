@@ -236,10 +236,10 @@ class FilterPaneUtils {
         def ret = [:]
         params.each { entry ->
             if (entry.key.startsWith("filter.")
-                    || entry.key.equals("filterProperties")
-                    || entry.key.equals("filterBean")
-                    || entry.key.equals("listDistinct")
-                    || entry.key.equals("uniqueCountColumn")
+                || entry.key.equals("filterProperties")
+                || entry.key.equals("filterBean")
+                || entry.key.equals("listDistinct")
+                || entry.key.equals("uniqueCountColumn")
             ) {
                 def val = entry.value
                 if (datesToStruct && val instanceof Date) {
@@ -267,7 +267,7 @@ class FilterPaneUtils {
 
     static boolean isValidFilter(paramProperty, params) {
         def paramPropertyValue = params[paramProperty]
-        if (paramPropertyValue in ['date.struct','struct']) {
+        if (paramPropertyValue in ['date.struct', 'struct']) {
             return parseDateFromDatePickerParams(paramProperty, params)
         }
         paramPropertyValue
@@ -340,7 +340,7 @@ class FilterPaneUtils {
     static resolveSubDomainsProperties(domainClass) {
         log.debug("resolveSubDomainProperties($domainClass)")
         def subClassPersistentProps = []
-        domainClass.mappingContext.getChildEntities(domainClass).each { subDomain->
+        domainClass.mappingContext.getChildEntities(domainClass).each { subDomain ->
             def newProps = subDomain.getPersistentProperties().findAll {
                 !subClassPersistentProps.contains(it) && !domainClass.persistentProperties.contains(it)
             }
@@ -356,8 +356,8 @@ class FilterPaneUtils {
         if (opType.getSimpleName().equalsIgnoreCase("boolean")) {
             type = 'boolean'
         } else if (opType == Byte || opType == byte || opType == Integer || opType == int || opType == Long || opType == long
-                || opType == Double || opType == double || opType == Float || opType == float
-                || opType == Short || opType == short || opType == BigDecimal || opType == BigInteger) {
+            || opType == Double || opType == double || opType == Float || opType == float
+            || opType == Short || opType == short || opType == BigDecimal || opType == BigInteger) {
             type = 'numeric'
         } else if (Date.isAssignableFrom(opType) || AbstractInstant.isAssignableFrom(opType) || AbstractPartial.isAssignableFrom(opType)) {
             type = 'date'

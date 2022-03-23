@@ -37,27 +37,27 @@ class FilterPaneTagLib {
      * resource bundle.  The prefix used in the valueMessagePrefix attribute will be fp.op.
      */
     private static final Map availableOpsByType = [
-            class    : ['', FilterPaneOperationType.InList.operation, FilterPaneOperationType.NotInList.operation],
-            text     : ['', FilterPaneOperationType.ILike.operation, FilterPaneOperationType.NotILike.operation,
-                        FilterPaneOperationType.Like.operation, FilterPaneOperationType.NotLike.operation,
-                        FilterPaneOperationType.Equal.operation, FilterPaneOperationType.NotEqual.operation,
-                        FilterPaneOperationType.IsNull.operation, FilterPaneOperationType.IsNotNull.operation,
-                        FilterPaneOperationType.IBeginsWith.operation, FilterPaneOperationType.BeginsWith.operation,
-                        FilterPaneOperationType.IEndsWith.operation, FilterPaneOperationType.EndsWith.operation],
-            numeric  : ['', FilterPaneOperationType.Equal.operation, FilterPaneOperationType.NotEqual.operation,
-                        FilterPaneOperationType.LessThan.operation, FilterPaneOperationType.LessThanEquals.operation,
-                        FilterPaneOperationType.GreaterThan.operation,
-                        FilterPaneOperationType.GreaterThanEquals.operation, FilterPaneOperationType.Between.operation,
-                        FilterPaneOperationType.IsNull.operation, FilterPaneOperationType.IsNotNull.operation],
-            date     : ['', FilterPaneOperationType.Equal.operation, FilterPaneOperationType.NotEqual.operation,
-                        FilterPaneOperationType.LessThan.operation, FilterPaneOperationType.LessThanEquals.operation,
-                        FilterPaneOperationType.GreaterThan.operation,
-                        FilterPaneOperationType.GreaterThanEquals.operation, FilterPaneOperationType.Between.operation,
-                        FilterPaneOperationType.IsNull.operation, FilterPaneOperationType.IsNotNull.operation],
-            'boolean': ['', FilterPaneOperationType.Equal.operation, FilterPaneOperationType.NotEqual.operation,
-                        FilterPaneOperationType.IsNull.operation, FilterPaneOperationType.IsNotNull.operation],
-            'enum'   : ['', FilterPaneOperationType.InList.operation, FilterPaneOperationType.NotInList.operation],
-            currency : ['', FilterPaneOperationType.Equal.operation, FilterPaneOperationType.NotEqual.operation]
+        class    : ['', FilterPaneOperationType.InList.operation, FilterPaneOperationType.NotInList.operation],
+        text     : ['', FilterPaneOperationType.ILike.operation, FilterPaneOperationType.NotILike.operation,
+                    FilterPaneOperationType.Like.operation, FilterPaneOperationType.NotLike.operation,
+                    FilterPaneOperationType.Equal.operation, FilterPaneOperationType.NotEqual.operation,
+                    FilterPaneOperationType.IsNull.operation, FilterPaneOperationType.IsNotNull.operation,
+                    FilterPaneOperationType.IBeginsWith.operation, FilterPaneOperationType.BeginsWith.operation,
+                    FilterPaneOperationType.IEndsWith.operation, FilterPaneOperationType.EndsWith.operation],
+        numeric  : ['', FilterPaneOperationType.Equal.operation, FilterPaneOperationType.NotEqual.operation,
+                    FilterPaneOperationType.LessThan.operation, FilterPaneOperationType.LessThanEquals.operation,
+                    FilterPaneOperationType.GreaterThan.operation,
+                    FilterPaneOperationType.GreaterThanEquals.operation, FilterPaneOperationType.Between.operation,
+                    FilterPaneOperationType.IsNull.operation, FilterPaneOperationType.IsNotNull.operation],
+        date     : ['', FilterPaneOperationType.Equal.operation, FilterPaneOperationType.NotEqual.operation,
+                    FilterPaneOperationType.LessThan.operation, FilterPaneOperationType.LessThanEquals.operation,
+                    FilterPaneOperationType.GreaterThan.operation,
+                    FilterPaneOperationType.GreaterThanEquals.operation, FilterPaneOperationType.Between.operation,
+                    FilterPaneOperationType.IsNull.operation, FilterPaneOperationType.IsNotNull.operation],
+        'boolean': ['', FilterPaneOperationType.Equal.operation, FilterPaneOperationType.NotEqual.operation,
+                    FilterPaneOperationType.IsNull.operation, FilterPaneOperationType.IsNotNull.operation],
+        'enum'   : ['', FilterPaneOperationType.InList.operation, FilterPaneOperationType.NotInList.operation],
+        currency : ['', FilterPaneOperationType.Equal.operation, FilterPaneOperationType.NotEqual.operation]
     ]
 
     /**
@@ -222,12 +222,12 @@ class FilterPaneTagLib {
                     def filterValue = filterParams["filter.${prop}"]
                     def filterValueTo
                     boolean isNumericType = (domainProp?.referencedPropertyType
-                            ? Number.isAssignableFrom(domainProp?.referencedPropertyType)
-                            : false)
+                        ? Number.isAssignableFrom(domainProp?.referencedPropertyType)
+                        : false)
                     boolean isNumericAndBlank = isNumericType && !"".equals(filterValue.toString().trim())
                     boolean isDateType = (domainProp?.referencedPropertyType
-                            ? FilterPaneUtils.isDateType(domainProp?.referencedPropertyType)
-                            : false)
+                        ? FilterPaneUtils.isDateType(domainProp?.referencedPropertyType)
+                        : false)
                     boolean isEnumType = domainProp?.referencedPropertyType?.isEnum()
                     if (filterValue != null && (!isNumericType || isNumericAndBlank) && filterOp?.size() > 0) {
 
@@ -346,8 +346,8 @@ class FilterPaneTagLib {
         renderModel.action = attrs.action ?: 'filter'
         renderModel.customForm = "true".equalsIgnoreCase(attrs?.customForm) || attrs?.customForm == true
         renderModel.formAction = renderModel.controller ?
-                g.createLink(controller: renderModel.controller, action: renderModel.action) :
-                renderModel.action
+            g.createLink(controller: renderModel.controller, action: renderModel.action) :
+            renderModel.action
         renderModel.showSortPanel = attrs.showSortPanel ? resolveBoolAttrValue(attrs.showSortPanel) : true
         renderModel.showButtons = attrs.showButtons ? resolveBoolAttrValue(attrs.showButtons) : true
         renderModel.showTitle = attrs.showTitle ? resolveBoolAttrValue(attrs.showTitle) : true
@@ -648,12 +648,12 @@ class FilterPaneTagLib {
 
         //noinspection GroovyAssignabilityCheck
         renderModel.buttonModel = [
-                cancelText : g.message(code: 'fp.tag.filterPane.button.cancel.text', default: 'Cancel'),
-                clearText  : g.message(code: 'fp.tag.filterPane.button.clear.text', default: 'Clear'),
-                applyText  : g.message(code: 'fp.tag.filterPane.button.apply.text', default: 'Apply'),
-                action     : renderModel.action,
-                containerId: renderModel.containerId,
-                formName   : renderModel.formName]
+            cancelText : g.message(code: 'fp.tag.filterPane.button.cancel.text', default: 'Cancel'),
+            clearText  : g.message(code: 'fp.tag.filterPane.button.clear.text', default: 'Clear'),
+            applyText  : g.message(code: 'fp.tag.filterPane.button.apply.text', default: 'Apply'),
+            action     : renderModel.action,
+            containerId: renderModel.containerId,
+            formName   : renderModel.formName]
     }
 
     private void mapSortedProps(List sortedProps, finalProps, attrs, boolean useFullAssociationPath, renderModel) {
@@ -892,8 +892,8 @@ class FilterPaneTagLib {
             refDomain = FilterPaneUtils.resolveReferencedDomainClass(association)
             fieldNamePrefix += "${grails.util.GrailsNameUtils.getNaturalName(refDomain.getJavaClass().simpleName)}'s "
             refProperty = ("id".equalsIgnoreCase(parts[index]) || "identifier".equalsIgnoreCase(parts[index])) ?
-                    refDomain.identity :
-                    refDomain.persistentProperties.find { it.name == parts[index] }
+                refDomain.identity :
+                refDomain.persistentProperties.find { it.name == parts[index] }
             //log.debug("refDomain is ${refDomain}, refProperty is ${refProperty}, parts[${index}] = ${parts[index]}")
             association = (refProperty instanceof Association && !refProperty?.type?.isEnum()) ? refProperty : null
             index += 1

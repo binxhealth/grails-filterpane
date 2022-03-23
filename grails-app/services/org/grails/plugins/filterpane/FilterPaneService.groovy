@@ -2,11 +2,8 @@ package org.grails.plugins.filterpane
 
 import grails.core.GrailsApplication
 import grails.gorm.DetachedCriteria
-import org.grails.compiler.injection.GrailsAwareClassLoader
 import org.grails.datastore.mapping.model.types.ManyToMany
 import org.grails.datastore.mapping.model.types.OneToMany
-import org.grails.datastore.mapping.query.api.BuildableCriteria
-import org.hibernate.Criteria
 
 class FilterPaneService {
 
@@ -22,10 +19,10 @@ class FilterPaneService {
         doFilter(params, filterClass, true)
     }
 
-    private sort(criteria, List sortPath, order){
+    private sort(criteria, List sortPath, order) {
         if (sortPath.size() == 1) {
-           criteria.order(sortPath.pop(), order ?: 'asc')
-        } else if(sortPath.size() > 0) {
+            criteria.order(sortPath.pop(), order ?: 'asc')
+        } else if (sortPath.size() > 0) {
             criteria."${sortPath.pop()}" {
                 sort(criteria, sortPath, order)
             }
@@ -33,7 +30,7 @@ class FilterPaneService {
     }
 
     private filterParse(criteria, domainClass, params,
-                          filterParams, filterOpParams, doCount, previousParams = null) {
+                        filterParams, filterOpParams, doCount, previousParams = null) {
         if (!previousParams) {
             previousParams = [
                 path: "this",
@@ -81,7 +78,7 @@ class FilterPaneService {
                                     String referencedIdName = nextDomainProp.owner.identity.name
                                     String ownerPropertyName = nextDomainProp.referencedPropertyName
                                     String path = currentParams.root
-                                    if(nextDomainProp instanceof ManyToMany){
+                                    if (nextDomainProp instanceof ManyToMany) {
                                         createAlias(ownerPropertyName, ownerPropertyName)
                                     }
                                     eqProperty("${ownerPropertyName}.${referencedIdName}", "${path}.${referencedIdName}")
@@ -210,7 +207,7 @@ class FilterPaneService {
 
             Closure doListOperation = { p ->
                 ((p?.listDistinct?.toBoolean()) ?
-                        c.listDistinct(criteriaClosure) : c.list(criteriaClosure))
+                    c.listDistinct(criteriaClosure) : c.list(criteriaClosure))
             }
 
             def results = doCount ? c.get(criteriaClosure) : doListOperation(params)
@@ -251,12 +248,12 @@ class FilterPaneService {
             value = FilterPaneUtils.getEndOfDay(value)
         }
 
-        def criteriaMap = [(FilterPaneOperationType.Equal.operation): 'eq', (FilterPaneOperationType.NotEqual.operation): 'ne',
-                           (FilterPaneOperationType.LessThan.operation): 'lt', (FilterPaneOperationType.LessThanEquals.operation): 'le',
+        def criteriaMap = [(FilterPaneOperationType.Equal.operation)      : 'eq', (FilterPaneOperationType.NotEqual.operation): 'ne',
+                           (FilterPaneOperationType.LessThan.operation)   : 'lt', (FilterPaneOperationType.LessThanEquals.operation): 'le',
                            (FilterPaneOperationType.GreaterThan.operation): 'gt', (FilterPaneOperationType.GreaterThanEquals.operation): 'ge',
-                           (FilterPaneOperationType.Like.operation): 'like', (FilterPaneOperationType.ILike.operation): 'ilike',
+                           (FilterPaneOperationType.Like.operation)       : 'like', (FilterPaneOperationType.ILike.operation): 'ilike',
                            (FilterPaneOperationType.IBeginsWith.operation): 'ilike', (FilterPaneOperationType.BeginsWith.operation): 'like',
-                           (FilterPaneOperationType.IEndsWith.operation): 'ilike', (FilterPaneOperationType.EndsWith.operation): 'like']
+                           (FilterPaneOperationType.IEndsWith.operation)  : 'ilike', (FilterPaneOperationType.EndsWith.operation): 'like']
 
         log.debug "Operation $op maps ${criteriaMap.get(op)}"
 
@@ -372,7 +369,7 @@ class FilterPaneService {
 
         // GRAILSPLUGINS-1717.  Groovy truth treats empty strings as false.  Compare against null.
         if (newValue != null) {
-            Class cls =  domainProperty?.type
+            Class cls = domainProperty?.type
             String clsName = cls.simpleName.toLowerCase()
             log.debug("cls is enum? ${cls.isEnum()}, domainProperty is ${domainProperty}, type is ${domainProperty.type}, value is '${newValue}', clsName is ${clsName}")
 
