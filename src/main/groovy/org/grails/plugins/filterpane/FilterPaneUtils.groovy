@@ -254,12 +254,23 @@ class FilterPaneUtils {
     static boolean isFilterApplied(params) {
         boolean isApplied = false
         params.each { key, value ->
-            if (key.startsWith('filter.op.') && value != null && !''.equals(value)) {
-                isApplied = true
-                return
+            if (key.startsWith('filter.op.')) {
+                String paramProperty = "filter.${key.substring(10)}"
+                if (value != null && !''.equals(value) && isValidFilter(paramProperty, params)) {
+                    isApplied = true
+                    return
+                }
             }
         }
         isApplied
+    }
+
+    static boolean isValidFilter(paramProperty, params) {
+        def paramPropertyValue = params[paramProperty]
+        if (paramPropertyValue in ['date.struct','struct']) {
+            return parseDateFromDatePickerParams(paramProperty, params)
+        }
+        paramPropertyValue
     }
 
     static resolveDomainClass(GrailsApplication grailsApplication, bean) {
