@@ -5,7 +5,7 @@
 			  name="${opName}"
 			  from="${opKeys}"
 			  keys="${opKeys}"
-			  value="${opValue?:(useDefaultOperator ?  opKeys.first() : opValue)}"
+			  value="${opValue?:(useDefaultOperator ?  opKeys[1] : opValue)}"
 			  valueMessagePrefix="fp.op"
 			  onChange="grailsFilterPane.filterOpChange('${opName}', '${ctrlAttrs.id}');" />
 </td>
