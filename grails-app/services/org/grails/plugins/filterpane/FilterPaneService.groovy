@@ -129,8 +129,10 @@ class FilterPaneService {
     }
 
     private Boolean isEmpty(value) {
-        log.debug "${value} is empty ${value?.toString()?.trim()?.isEmpty()}"
-        value?.toString()?.trim()?.isEmpty()
+        String cleanValue = value?.toString()?.trim()
+        boolean isEmpty = cleanValue?.isEmpty() || cleanValue == "date.struct"
+        log.debug "${value} is empty ${isEmpty}"
+        isEmpty
     }
 
     private doFilter(params, Class filterClass, Boolean doCount) {
