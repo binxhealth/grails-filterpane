@@ -212,7 +212,7 @@ class FilterPaneUtils {
 
     private static zeroPad(val) {
         try {
-            if (val != null) {
+            if (!isEmpty(val)) {
                 int i = val as int
                 return (i < 10) ? "0${i}" : val
             }
@@ -225,7 +225,13 @@ class FilterPaneUtils {
     static extractFilterParams(params) {
         def ret = [:]
         params.each { entry ->
-            if (entry?.key?.startsWith("filter.") || entry?.key?.equals("filterProperties") || entry?.key?.equals("filterBean")) {
+            if (entry?.key?.startsWith("filter.op")) {
+                if (isValidFilter("filter.${entry.key.substring(10)}", params)) {
+                    ret[entry.key] = entry.value
+                }
+            } else if (!isEmpty(entry.value) && (entry?.key?.startsWith("filter.")
+                || entry?.key?.equals("filterProperties")
+                || entry?.key?.equals("filterBean"))) {
                 ret[entry.key] = entry.value
             }
         }
@@ -349,6 +355,13 @@ class FilterPaneUtils {
         }
 
         return subClassPersistentProps
+    }
+
+    static Boolean isEmpty(value) {
+        String cleanValue = value?.toString()?.trim()
+        boolean isEmpty = cleanValue?.isEmpty() || cleanValue == "date.struct"
+        log.debug "${value} is empty ${isEmpty}"
+        isEmpty
     }
 
     static getOperatorMapKey(opType) {

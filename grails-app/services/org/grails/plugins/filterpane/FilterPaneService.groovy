@@ -122,7 +122,7 @@ class FilterPaneService {
             if (v instanceof Map) {
                 result = result && areAllValuesEmptyRecursively(v)
             } else {
-                result = result && isEmpty(v)
+                result = result && FilterPaneUtils.isEmpty(v)
             }
         }
         result
@@ -261,7 +261,7 @@ class FilterPaneService {
 
         //needs null check since '' or 0 are valid filter
         if (op) {
-            if (value != null && !isEmpty(value)) {
+            if (value != null && !FilterPaneUtils.isEmpty(value)) {
                 switch (op) {
                     case FilterPaneOperationType.Equal.operation:
                     case FilterPaneOperationType.NotEqual.operation:
