@@ -122,17 +122,10 @@ class FilterPaneService {
             if (v instanceof Map) {
                 result = result && areAllValuesEmptyRecursively(v)
             } else {
-                result = result && FilterPaneUtils.isEmpty(v)
+                result = result && (FilterPaneUtils.isEmpty(v) || FilterPaneUtils.isDateStruct(v))
             }
         }
         result
-    }
-
-    private Boolean isEmpty(value) {
-        String cleanValue = value?.toString()?.trim()
-        boolean isEmpty = cleanValue?.isEmpty() || cleanValue == "date.struct"
-        log.debug "${value} is empty ${isEmpty}"
-        isEmpty
     }
 
     private doFilter(params, Class filterClass, Boolean doCount) {
@@ -261,7 +254,7 @@ class FilterPaneService {
 
         //needs null check since '' or 0 are valid filter
         if (op) {
-            if (value != null && !FilterPaneUtils.isEmpty(value)) {
+            if (value != null && !(FilterPaneUtils.isEmpty(value) || FilterPaneUtils.isDateStruct(value))) {
                 switch (op) {
                     case FilterPaneOperationType.Equal.operation:
                     case FilterPaneOperationType.NotEqual.operation:

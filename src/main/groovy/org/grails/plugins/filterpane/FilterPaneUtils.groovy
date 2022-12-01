@@ -225,8 +225,9 @@ class FilterPaneUtils {
     static extractFilterParams(params) {
         def ret = [:]
         params.each { entry ->
-            if (entry?.key?.startsWith("filter.op")) {
-                if (isValidFilter("filter.${entry.key.substring(10)}", params)) {
+            if (entry?.key?.startsWith("filter.op") || isDateStruct(entry.value)) {
+                int startIndex = entry?.key?.startsWith("filter.op") ? 10 : 7
+                if (isValidFilter("filter.${entry.key.substring(startIndex)}", params)) {
                     ret[entry.key] = entry.value
                 }
             } else if (!isEmpty(entry.value) && (entry?.key?.startsWith("filter.")
@@ -276,7 +277,7 @@ class FilterPaneUtils {
         if (paramPropertyValue in ['date.struct', 'struct']) {
             return parseDateFromDatePickerParams(paramProperty, params)
         }
-        paramPropertyValue
+        isEmpty(paramPropertyValue)
     }
 
     static resolveDomainClass(GrailsApplication grailsApplication, bean) {
@@ -359,9 +360,13 @@ class FilterPaneUtils {
 
     static Boolean isEmpty(value) {
         String cleanValue = value?.toString()?.trim()
-        boolean isEmpty = cleanValue?.isEmpty() || cleanValue == "date.struct"
+        boolean isEmpty = cleanValue?.isEmpty()
         log.debug "${value} is empty ${isEmpty}"
         isEmpty
+    }
+
+    static boolean isDateStruct(value) {
+        value == "date.struct"
     }
 
     static getOperatorMapKey(opType) {

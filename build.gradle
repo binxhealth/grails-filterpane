@@ -15,7 +15,7 @@ plugins {
 	id "io.spring.dependency-management" version "1.0.9.RELEASE"
 }
 
-version "4.0.3"
+version "4.0.5"
 group "com.binxhealth.plugins"
 
 apply plugin: 'maven-publish'
