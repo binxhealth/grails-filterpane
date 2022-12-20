@@ -277,7 +277,7 @@ class FilterPaneUtils {
         if (paramPropertyValue in ['date.struct', 'struct']) {
             return parseDateFromDatePickerParams(paramProperty, params)
         }
-        isEmpty(paramPropertyValue)
+        !isEmpty(paramPropertyValue)
     }
 
     static resolveDomainClass(GrailsApplication grailsApplication, bean) {
